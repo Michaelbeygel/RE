@@ -1,17 +1,7 @@
-gcc exit.c -o exit.exe
-
-dir
-
-exit_handmade.exe
-echo %errorlevel%
-
 gcc -c katan_calculator.S -o katan_calculator.o
-dir print*
+
 objcopy -O binary katan_calculator.o katan_calculator.bin
-dir print*
 
 type katan_calculator.bin find_function.bin > binary.bin
-dir
 
 type PE_new.bin binary.bin > katan_calculator.exe
-dir
