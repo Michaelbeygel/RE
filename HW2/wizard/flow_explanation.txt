@@ -1,0 +1,52 @@
+step 1:
+user input -> Magen-david output
+10 --> 1
+1 --> 2
+11 --> 3
+8 --> 4
+5 --> 5
+0 --> 6
+4 --> 7
+6 --> 8
+9 --> 9
+7 --> 10
+3 --> 11
+2 --> 12
+
+step 2:
+Constrains:
+x1 + x2 + x3 + x4 = 26
+x7 + x8 + x9 + x10 = 26
+x0 + x2 + x5 + x7 = 26
+x0 + x3 + x6 + x10 = 26
+x1 + x5 + x8 + x11 = 26
+x4 + x6 + x9 + x11 = 26
+x0 + x1 + x4 + x7 + x10 + x11 = 26
+
+output     input
+x0=1         10
+x1=2          1
+x2=12         2
+x3=9          9
+x4=3         11
+x5=6          0
+x6=11         3
+x7=7          4
+x8=10         7
+x9=4          8
+x10=5         5
+x11=8         6
+
+10 1 2 9 11 0 3 4 7 8 5 6
+
+
+step 3:
+for i=0; i<=28; i++:
+    str[i] = str[i]-41x
+    str[i] = str[i] xor str[(i+1)%29]
+    str[i] = str[i]+41x
+strncmp(str, "PIAIAEDHMCCIKPHGGHJAAKMIFELMM", 29)
+
+step 4:
+changing return value - use 16 A's as padding then we do str = str + function_offset but the function_offset actually rewrite the return address
+MDLLDDHEDPNPHNCFDFCLLLBNFAEPDAAAAAAAAAAAAAAAA
