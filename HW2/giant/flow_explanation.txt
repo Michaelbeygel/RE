@@ -1,0 +1,17 @@
+step 1 constrains:
+hex_input < 0 && not hex_input + 1 < 0 ---> hex_input = 0x80000000(2147483648)
+x1 = 224
+x2 < 0 &&  x2 - 1 > 0  ---> x2 = 0x7FFFFFFF(2147483647)
+-82x3^2 -7380x3 - 166049 = 1  --->  x3 = -45
+
+step 2:
+missing second call merge_sort
+end of calling address(0x00401772) - merge_sort address(0x004018A8) = -0x136(0xFFFFFECA)
+E8 = call opcode
+---> E8CAFEFFFF
+
+step3:
+only way to print the rest is by entrering the exeption handler we set,
+we can read from null memory and get this exeption to do so we can input chats which after mixing them and sub "NLUL" we will get 0 memory address to read from.
+the input before the mix needs to be "NULL"
+ 
