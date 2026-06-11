@@ -1,0 +1,13 @@
+       x=0  1  2  3  4  5 
+
+y=0      B  B  G  G  E  F
+
+y=1      .  Q  Q  Q  E  F   
+
+y=2      O  O  O  R  .  .
+
+y=3      .  .  X  R  .  .
+
+y=4      A  .  X  R  .  .
+
+y=5      A  P  P  P  D  D
