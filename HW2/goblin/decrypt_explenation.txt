@@ -4,5 +4,5 @@ first run is:
 second run is:
 .\decrypt.exe 8 69629837 d5b160d965786160 ?l,cykJ![QWL*_6d
 
-each run decrypt 16 bytes of the password reulting togther:
+each run will decrypt 16 bytes of the password reulting togther:
 0SD5XPGWNSOPHO4N
