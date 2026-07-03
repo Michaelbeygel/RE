@@ -23,7 +23,7 @@ LPVOID recv_buffer;
 void __stdcall decode_string(char* buf) {
     int read_idx = 0;
     int write_idx = 0;
-    
+
     bool is_high_nibble = true;
     unsigned char high_nibble = 0;
 
@@ -34,41 +34,49 @@ void __stdcall decode_string(char* buf) {
         if (c == 'A') {
             current_nibble = 1;
             read_idx += 1;
-        } else if (c == 'J') {
+        }
+        else if (c == 'J') {
             current_nibble = 10;
             read_idx += 1;
-        } else if (c == 'Q') {
+        }
+        else if (c == 'Q') {
             current_nibble = 11;
             read_idx += 1;
-        } else if (c == 'K') {
+        }
+        else if (c == 'K') {
             current_nibble = 12;
             read_idx += 1;
-        } else if (c >= '0' && c <= '9') {
-            if (buf[read_idx + 1] != '\0' && buf[read_idx + 2] != '\0' && 
-               (buf[read_idx + 1] == '+' || buf[read_idx + 1] == '-')) {
+        }
+        else if (c >= '0' && c <= '9') {
+            if (buf[read_idx + 1] != '\0' && buf[read_idx + 2] != '\0' &&
+                (buf[read_idx + 1] == '+' || buf[read_idx + 1] == '-')) {
                 int val1 = c - '0';
                 char op = buf[read_idx + 1];
                 int val2 = buf[read_idx + 2] - '0';
 
                 if (op == '+') {
                     current_nibble = val1 + val2;
-                } else if (op == '-') {
+                }
+                else if (op == '-') {
                     current_nibble = val1 - val2;
                 }
                 read_idx += 3;
-            } else {
+            }
+            else {
                 current_nibble = c - '0';
                 read_idx += 1;
             }
-        } else {
+        }
+        else {
             read_idx += 1;
-            continue; 
+            continue;
         }
 
         if (is_high_nibble) {
             high_nibble = current_nibble;
             is_high_nibble = false;
-        } else {
+        }
+        else {
             char decoded_char = (high_nibble << 4) | current_nibble;
             buf[write_idx] = decoded_char;
             write_idx++;
@@ -76,18 +84,8 @@ void __stdcall decode_string(char* buf) {
         }
     }
 
-    buf[write_idx] = '\0'; 
+    buf[write_idx] = '\0';
 }
-
-__declspec(naked) void pre_recv_hook()
-{
-    __asm {
-        mov real_return_address, [esp]; // saving the original return address
-        mov [esp], after_recv_hook; // rewriting the return address to be after_recv_hook
-        mov recv_buffer, [esp+8]; // saving the buffer address for future decoding
-    }
-}
-
 
 __declspec(naked) void after_recv_hook()
 {
@@ -97,12 +95,29 @@ __declspec(naked) void after_recv_hook()
         jmp real_return_address // jump back to the original retune address
     }
 }
+__declspec(naked) void pre_recv_hook()
+{
+    __asm {
+        push eax
+        mov eax, [esp+4]
+        mov real_return_address, eax 
+
+        mov eax, OFFSET after_recv_hook
+        mov [esp+4] ,eax
+        mov eax, [esp+12]
+        mov recv_buffer , eax
+        pop eax
+    }
+}
+
+
+
 
 void setHook() {
 
     LPVOID f;
     HMODULE h = GetModuleHandle(L"WS2_32.dll");
-    CHAR JmpOpcode[5] = "\xE9\x90\x90\x90\x90";
+    CHAR JmpOpcode[6] = "\xE9\x90\x90\x90\x90";
     DWORD lpProtect = 0;
     LPVOID JumpTo;
 
@@ -122,7 +137,7 @@ void setHook() {
     JumpTo = (LPVOID)((char*)&pre_recv_hook - ((char*)f));
     VirtualProtect((char*)f - 5, 0x7, PAGE_EXECUTE_READWRITE, &lpProtect);
     memcpy(JmpOpcode + 1, &JumpTo, 0x4); // preparing the jmp to the hook
-    memcpy((char*)f-5, &JmpOpcode, 5);  // writing to f-5 the jmp
+    memcpy((char*)f - 5, &JmpOpcode, 5);  // writing to f-5 the jmp
     *(char*)f = 0xEB; // writing to f the jmp -7
     *((char*)(f)+1) = 0xf9;
     VirtualProtect((char*)f - 5, 0x7, PAGE_EXECUTE_READ, &lpProtect);
