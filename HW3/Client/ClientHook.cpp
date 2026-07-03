@@ -93,7 +93,7 @@ __declspec(naked) void after_recv_hook()
 {
     __asm {
         push recv_buffer
-        call decode_string
+        call decode_string // calling decode function
         jmp real_return_address // jump back to the original retune address
     }
 }
