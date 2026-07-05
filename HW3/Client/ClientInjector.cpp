@@ -26,7 +26,8 @@ int main(int argc, char** argv)
         printf("Usage: %s <dll_path>\n", argv[0]);
         return 1;
     }
-    char* injected_program = "client.exe";
+
+    char injected_program[] = "client.exe";
     LPSTR lpCmdLine = (LPSTR)injected_program;
     DLL_PATH = (LPSTR)argv[1];
 
