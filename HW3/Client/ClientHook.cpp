@@ -15,7 +15,7 @@ using std::ofstream;
 using std::endl;
 using std::wstring;
 using std::wofstream;
-ofstream log_file("log.txt");
+ofstream log_file("Hook_log.txt");
 
 LPVOID real_return_address;
 LPVOID recv_buffer;
@@ -132,7 +132,7 @@ void setHook() {
         return;
     }
 
-    log_file << "recv: setting hook" << endl;
+    log_file << "recv: start setting hook" << endl;
     // calculate relative jump to DrawTextHook from f, add 5 cause its from eip after the execution
     JumpTo = (LPVOID)((char*)&pre_recv_hook - ((char*)f));
     VirtualProtect((char*)f - 5, 0x7, PAGE_EXECUTE_READWRITE, &lpProtect);
@@ -141,6 +141,7 @@ void setHook() {
     *(char*)f = 0xEB; // writing to f the jmp -7
     *((char*)(f)+1) = 0xf9;
     VirtualProtect((char*)f - 5, 0x7, PAGE_EXECUTE_READ, &lpProtect);
+    log_file << "recv: done setting hook" << endl;
 }
 
 BOOL APIENTRY DllMain(HMODULE hModule,
