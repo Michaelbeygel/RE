@@ -19,17 +19,27 @@ ofstream log_file("Hook_log.txt");
 
 LPVOID real_return_address;
 LPVOID recv_buffer;
+LPVOID recv_start;
 
-void __stdcall decode_string(char* buf) {
+int __stdcall decode_string(char* buf, int original_len) {
     int read_idx = 0;
     int write_idx = 0;
 
     bool is_high_nibble = true;
     unsigned char high_nibble = 0;
 
-    while (buf[read_idx] != '\0') {
-        unsigned char current_nibble = 0;
+    while (read_idx < original_len) {
         char c = buf[read_idx];
+
+        if (c == '\n' || c == '\r') {
+            buf[write_idx] = c;
+            write_idx++;
+            read_idx++;
+            is_high_nibble = true;
+            continue;
+        }
+
+        unsigned char current_nibble = 0;
 
         if (c == 'A') {
             current_nibble = 1;
@@ -48,8 +58,10 @@ void __stdcall decode_string(char* buf) {
             read_idx += 1;
         }
         else if (c >= '0' && c <= '9') {
-            if (buf[read_idx + 1] != '\0' && buf[read_idx + 2] != '\0' &&
-                (buf[read_idx + 1] == '+' || buf[read_idx + 1] == '-')) {
+            // Safely check bounds using original_len instead of '\0'
+            if (read_idx + 2 < original_len && 
+               (buf[read_idx + 1] == '+' || buf[read_idx + 1] == '-')) {
+                
                 int val1 = c - '0';
                 char op = buf[read_idx + 1];
                 int val2 = buf[read_idx + 2] - '0';
@@ -85,14 +97,17 @@ void __stdcall decode_string(char* buf) {
     }
 
     buf[write_idx] = '\0';
+    
+    return write_idx;
 }
 
 __declspec(naked) void after_recv_hook()
 {
     __asm {
+        push eax         // recv return the number of bytes writen
         push recv_buffer
-        call decode_string // calling decode function
-        jmp real_return_address // jump back to the original retune address
+        call decode_string 
+        jmp real_return_address
     }
 }
 __declspec(naked) void pre_recv_hook()
@@ -107,10 +122,10 @@ __declspec(naked) void pre_recv_hook()
         mov eax, [esp+12]
         mov recv_buffer , eax
         pop eax
+
+        jmp recv_start
     }
 }
-
-
 
 
 void setHook() {
@@ -139,7 +154,8 @@ void setHook() {
     memcpy(JmpOpcode + 1, &JumpTo, 0x4); // preparing the jmp to the hook
     memcpy((char*)f - 5, &JmpOpcode, 5);  // writing to f-5 the jmp
     *(char*)f = 0xEB; // writing to f the jmp -7
-    *((char*)(f)+1) = 0xf9;
+    *((char*)(f)+1) = 0xF9;
+    recv_start = (char*)f + 2;
     VirtualProtect((char*)f - 5, 0x7, PAGE_EXECUTE_READ, &lpProtect);
     log_file << "recv: done setting hook" << endl;
 }
