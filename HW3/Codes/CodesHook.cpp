@@ -33,12 +33,12 @@ bool local_strcmp(const char* input, const char* target) {
 int __stdcall spoof_strcmp_logic(const char* str1, const char* str2) {
 	if (str1 == nullptr || str2 == nullptr) return 2;
 
-	if (local_strcmp(str1, "NO SUCH CODE") || local_strcmp(str2, "NO SUCH CODE")) {
-		return 1;
+    if (local_strcmp(str1, "ROBBER_CAPTURED") || local_strcmp(str2, "ROBBER_CAPTURED")) {
+		return 0;
 	}
 
-	if (local_strcmp(str1, "ROBBER_CAPTURED") || local_strcmp(str2, "ROBBER_CAPTURED")) {
-		return 0;
+	if (local_strcmp(str1, "NO SUCH CODE") || local_strcmp(str2, "NO SUCH CODE")) {
+		return 1;
 	}
 
 	return 2;
@@ -47,7 +47,6 @@ int __stdcall spoof_strcmp_logic(const char* str1, const char* str2) {
 __declspec(naked) void strcmp_Hook()
 {
 	__asm {
-		int 3;
 		// [esp+4] = str1, [esp+8] = str2
 		mov eax, [esp + 4]
 		push eax
@@ -71,11 +70,6 @@ __declspec(naked) void strcmp_Hook()
 
 void setHook()
 {
-	while (!IsDebuggerPresent()) {
-		Sleep(10); // 10ms is plenty fast and doesn't max out the CPU core
-	}
-	
-
 	LPVOID f;
 	HMODULE h = GetModuleHandle(L"msvcrt.dll");
 	CHAR JmpOpcode[9] = "\xE9\x90\x90\x90\x90\x90\x90\x90";
