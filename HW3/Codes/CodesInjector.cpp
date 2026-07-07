@@ -4,9 +4,10 @@
 #include <Shlwapi.h>
 #include <iostream>
 #include <fstream>
+#include <string> // חובה בשביל שרשור מחרוזות נוח
 
-LPSTR DLL_PATH;
-// #define DLL_PATH "ColorDll.dll"
+// שים לב: שנה את השם הזה לשם של קובץ ה-DLL שהכנת עבור codes.exe!
+#define DLL_PATH "Codes.dll" 
 #define true 1
 #define false 0
 
@@ -18,41 +19,50 @@ ofstream log_file("Injector_log.txt");
 
 BOOL dllInjector(const char* dllpath, DWORD pID);
 
-
 int main(int argc, char** argv)
 {
-
-    // Create Process SUSPENDED
     PROCESS_INFORMATION pi;
     STARTUPINFOA Startup;
     ZeroMemory(&Startup, sizeof(Startup));
     ZeroMemory(&pi, sizeof(pi));
-    // get the command line argument of the current process
-    //LPSTR lpCmdLine = GetCommandLineA();
+    Startup.cb = sizeof(Startup);
+
     if (argc < 2) {
-        log_file <<"Usage: ./CodesInjector.exe <dll_path>" << endl;
+        log_file << "Usage: ./CodesInjector.exe <path_to_codes.exe>" << endl;
         return 1;
     }
 
-    char cmd_line[] = "codes.exe ROBBER_CAPTURED AAA";
+    std::string targetPath = argv[1];
     
-    DLL_PATH = (LPSTR)argv[1];
+    std::string cmd_line_str = targetPath + " ROBBER_CAPTURED AAA";
+    log_file << "Opening process: " << cmd_line_str << endl;
 
-    log_file << "Opening process: " << cmd_line << endl;
-    
+    char* cmd_line = new char[cmd_line_str.length() + 1];
+    strcpy(cmd_line, cmd_line_str.c_str());
+
     if (CreateProcessA(NULL, cmd_line, NULL, NULL, FALSE, CREATE_SUSPENDED, NULL, NULL, &Startup, &pi) == FALSE) {
         log_file << "Couldn't open process: " << cmd_line << endl;
+        delete[] cmd_line;
         return 1;
     }
 
     if (!(dllInjector(DLL_PATH, pi.dwProcessId))) {
         log_file << "couldnt inject dll" << endl;
+        TerminateProcess(pi.hProcess, 1);
+        delete[] cmd_line;
         return 1;
     }
 
-    Sleep(1000); // Let the DLL finish loading
+    Sleep(1000);
     ResumeThread(pi.hThread);
     log_file << "Injected dll successfully" << endl;
+    
+    WaitForSingleObject(pi.hProcess, INFINITE);
+    
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+    delete[] cmd_line;
+    
     return 0;
 }
 
@@ -69,12 +79,12 @@ BOOL dllInjector(const char* dllpath, DWORD pID)
         return false;
     }
 
-
     remoteLoadLib = (LPVOID)GetProcAddress(GetModuleHandleA("kernel32.dll"), "LoadLibraryA");
 
-    remoteString = (LPVOID)VirtualAllocEx(pHandle, NULL, strlen(DLL_PATH) + 1, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+    remoteString = (LPVOID)VirtualAllocEx(pHandle, NULL, strlen(dllpath) + 1, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
     WriteProcessMemory(pHandle, (LPVOID)remoteString, dllpath, strlen(dllpath), NULL);
     if (NULL == CreateRemoteThread(pHandle, NULL, NULL, (LPTHREAD_START_ROUTINE)remoteLoadLib, (LPVOID)remoteString, NULL, NULL)) {
+        CloseHandle(pHandle);
         return false;
     }
     CloseHandle(pHandle);
