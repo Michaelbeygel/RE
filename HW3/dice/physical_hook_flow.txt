@@ -1,0 +1,22 @@
+1. write an hook logic in asmbly then end it with // Restore the stolen commands + jmp 0x01010101; //placeholder
+
+2. gcc -c -m32 dice_hook.S -o dice_hook.o
+
+3. objcopy -O binary dice_hook.o dice_hook.bin # create bin for that section
+
+4. type dice.exe dice_hook.bin > dice_hooked.exe # ammend the section we created to end of our exe(from cmd not powershell)
+
+5. open dice_hooked.exe on CFF explorer, go to section header and press right click and "add section(File data)", then choose our bin, then name it and change characrastics to E0000020
+
+6. Now we need to set 2 jumps, open the hooked version in IDA:
+6.1 set jmp from code to hook: hook_start is taken from IDA->view->Open subviews->segments->start entry.
+then calc offset = hook_start - (code+5) = e.g 0xACB5.
+Then stand on code and prees IDA -> edit-> Patch program -> change byte: and change it to E9 {offset_reverse e.g: B5 AC 00 00(always pad with 0 if needed)} {90's(nops) to complete from 5 to end of instruction we removed}
+and then press c to make the 90's actually nops
+ 
+6.2 set jmp from hook to code: hook_start is taken from IDA->view->Open subviews->segments->start entry.
+then calc offset = (code added nop address) - (hook_end_of_jmp_placeholder) = e.g  0x-AAC2 = -43714.
+open decimal to hex and convert the -43714 into hex(e.g FFFF553E)
+Then stand on jmp_placeholder and prees IDA -> edit-> Patch program -> change byte: and change it to E9(already exist) {offset_reverse e.g: 3E 55 FF FF} (no nops needed in that case)
+
+7. Apply the changes: go to IDA -> edit-> Patch program -> Apply patches to input file
