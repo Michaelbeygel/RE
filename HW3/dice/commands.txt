@@ -1,0 +1,5 @@
+1. gcc -c -m32 dice_hook.S -o dice_hook.o
+2. objcopy -O binary dice_hook.o dice_hook.bin # create bin for that section
+3. type dice.exe dice_hook.bin > dice_hooked.exe # ammend the section we created to end of our exe(from cmd not powershell)
+4. open dice_hooked.exe on CFF explorer, go to section header and press right click and "add section(File data)", then choose our bin, then name it and change characrastics to E0000020
+5. 
