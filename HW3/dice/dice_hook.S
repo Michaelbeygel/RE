@@ -5,4 +5,6 @@ dice_hook:
     // Restore the stolen bytes
     mov eax, dword ptr [ebp+8];
     cmp eax, 7;
-    jmp 0x01010101; // placeholder for future modification
+
+    // placeholder for future modification
+    jmp 0x01010101;
